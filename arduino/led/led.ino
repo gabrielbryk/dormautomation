@@ -1,6 +1,5 @@
 #include <FastLED.h>
 
-
 #define LED_PIN1     7 //Room
 #define LED_PIN2     8 //Under Bed
 #define LED_PIN3     9 //Shelf
@@ -20,7 +19,7 @@ int roomon = 1;
 int shelfon = 1;
 int bedon = 1;
 
-int color = 1;
+int color = 0;
 //0 white
 //1 purple vibe
 //2 sex pink
@@ -54,9 +53,29 @@ void setup() {
 }
 void loop() {
   if (Serial.available() > 0) {
-      String data = Serial.readStringUntil('\n');
-      Serial.print("You sent me: ");
-      Serial.println(data);
+    String command = Serial.readStringUntil('\n');
+    if (command.startsWith("program")) {
+      program = command.substring(7).toInt();
+      Serial.print(program);
+    }
+    else if (command.startsWith("brightness")) {
+      brightness = command.substring(8).toInt();
+    }
+    else if (command.startsWith("color")) {
+      color = command.substring(5).toInt();
+      Serial.println(command.substring(4));
+
+    }
+    else if (command.startsWith("on")) {
+      power = 1;
+    }
+    else if (command.startsWith("off")) {
+      power = 0;
+    }
+    runCommand();
+  }
+}
+void runCommand(){
   if (program == 1) {
     rainbowSpin();
   }
@@ -95,31 +114,9 @@ void loop() {
   }
   else {
     delay(1000);
-}
-  }
-  //checkSerial();
-
-}
-
-void checkSerial() {
-  if (Serial.available() > 10) {
-    String command = Serial.readStringUntil('\n');
-    Serial.println(command);
-    if (command.startsWith("program")) {
-      program = command.substring(7).toInt();
-      Serial.print(program);
-    }
-    else if (command.equals("brightness")) {
-      brightness = command.substring(8).toInt();
-    }
-    else if (command.equals("on")) {
-      power = 1;
-    }
-    else if (command.equals("off")) {
-      power = 0;
-    }
   }
 }
+
 //Programs
 void rainbowSpin() {
   for (int hue = 0; hue < 255; hue++) {
@@ -136,7 +133,6 @@ void rainbowSpin() {
 
     delay(10);
     showStrip();
-    checkSerial();
   }
 }
 
