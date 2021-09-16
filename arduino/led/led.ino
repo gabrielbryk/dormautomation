@@ -53,7 +53,10 @@ void setup() {
   }
 }
 void loop() {
-
+  if (Serial.available() > 0) {
+      String data = Serial.readStringUntil('\n');
+      Serial.print("You sent me: ");
+      Serial.println(data);
   if (program == 1) {
     rainbowSpin();
   }
@@ -92,6 +95,7 @@ void loop() {
   }
   else {
     delay(1000);
+}
   }
   //checkSerial();
 
