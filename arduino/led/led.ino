@@ -19,13 +19,7 @@ int roomon = 1;
 int shelfon = 1;
 int bedon = 1;
 
-int color = 0;
-//0 white
-//1 purple vibe
-//2 sex pink
-//3 organy red
-//4 greenish teal
-//5 yellowish
+CRGB color;
 CRGB room[NUM_ROOM];
 CRGB under[NUM_UNDER];
 CRGB shelf[NUM_SHELF];
@@ -54,17 +48,15 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     String command = Serial.readStringUntil('\n');
+    command.toLowerCase();
     if (command.startsWith("program")) {
-      program = command.substring(7).toInt();
-      Serial.print(program);
+      program = command.substring(10).toInt();
     }
     else if (command.startsWith("brightness")) {
-      brightness = command.substring(8).toInt();
+      brightness = command.substring(10).toInt();
     }
     else if (command.startsWith("color")) {
-      color = command.substring(5).toInt();
-      Serial.println(command.substring(4));
-
+      changeColor(command.substring(10));
     }
     else if (command.startsWith("on")) {
       power = 1;
@@ -81,30 +73,8 @@ void runCommand(){
   }
   else if (program == 2) {
     FastLED.setBrightness(brightness);
-    CRGB c;
-    if (color == 1) {
-      c = CRGB(100, 70, 255);
-    }
-    else if (color == 2) {
-      c = CRGB(227, 43, 237);
-    }
-    else if (color == 3) {
-      c = CRGB(245, 43, 7);
-    }
-    else if (color == 4) {
-      c = CRGB(0, 255, 128);
-    }
-    else if (color == 5) {
-      c = CRGB(255, 200, 0);
-    }
-    else if (color == 6) {
-      c = CRGB(255, 219, 89);
-    }
-    else {
-      //c = CRGB(255, 255, 255);
-      c = CRGB::White;
-    }
-    solid(c);
+    
+    solid(color);
   }
   else if (program == 3) {
     flash();
@@ -117,6 +87,33 @@ void runCommand(){
   }
 }
 
+void changeColor(String c){
+  if(c.equals("piss")){
+    color= CRGB(255, 200, 0);
+  }
+  else if(c.equals("sex")){
+    //sex pink
+    color = CRGB(227, 43, 237);
+  }
+  else if(c.equals("white")){
+    color=CRGB::White;
+  }
+  else if(c.equals("chill")){
+    //purple chill
+    color = CRGB(100, 70, 255);
+  }
+  else if(c.equals("orange")){
+    //orangey red
+    color = CRGB(245, 43, 7);
+  }
+  else if(c.equals("teal")){
+    //orangey red
+    color = CRGB(0, 255, 128);
+  }
+  else{
+    color=CRGB::Red;  
+  }
+}
 //Programs
 void rainbowSpin() {
   for (int hue = 0; hue < 255; hue++) {
