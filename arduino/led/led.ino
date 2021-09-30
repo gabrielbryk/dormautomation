@@ -19,7 +19,7 @@ int roomon = 1;
 int shelfon = 1;
 int bedon = 1;
 
-CRGB color;
+CRGB color=CRGB::White;
 CRGB room[NUM_ROOM];
 CRGB under[NUM_UNDER];
 CRGB shelf[NUM_SHELF];
@@ -27,7 +27,7 @@ CRGB desk[NUM_DESK];
 
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   FastLED.addLeds<WS2811, LED_PIN1, GRB>(room, NUM_ROOM);
   FastLED.addLeds<WS2811, LED_PIN2, GRB>(under, NUM_UNDER);
   FastLED.addLeds<WS2811, LED_PIN3, GRB>(shelf, NUM_SHELF);
@@ -44,46 +44,84 @@ void setup() {
   for (int i = 0; i < NUM_DESK; i++) {
     desk[i] = CRGB::Black;
   }
+  runCommand();
 }
 void loop() {
-  if (Serial.available() > 0) {
-    String command = Serial.readStringUntil('\n');
-    command.toLowerCase();
-    if (command.startsWith("program")) {
-      program = command.substring(10).toInt();
-    }
-    else if (command.startsWith("brightness")) {
-      brightness = command.substring(10).toInt();
-    }
-    else if (command.startsWith("color")) {
-      changeColor(command.substring(10));
-    }
-    else if (command.startsWith("on")) {
-      power = 1;
-    }
-    else if (command.startsWith("off")) {
-      power = 0;
-    }
+  for(int i=0;i<1000;i++){
+    if (Serial.available() > 0) {
+      String command = Serial.readStringUntil('\n');
+      command.toLowerCase();
+      String param = command.substring(10);
+      Serial.print(command+" "+param);
+      if (command.startsWith("program")) {
+        program = param.toInt();
+      }
+      else if (command.startsWith("brightness")) {
+        brightness = param.toInt();
+      }
+      else if (command.startsWith("color")) {
+        changeColor(param);
+      }
+      else if(command.startsWith("on")){
+        if(param.equals("room")){
+          roomon = 1;
+        }
+        else if(param.equals("bed")){
+          bedon = 1;
+        }
+        else if(param.equals("desk")){
+          deskon = 1;
+        }
+        else if(param.equals("shelf")){
+          shelfon = 1;
+        }
+        else if(param.equals("power")){
+          power = 1;
+        }
+      }
+      else if(command.startsWith("off")){
+        if(param.equals("room")){
+          roomon = 0;
+        }
+        else if(param.equals("bed")){
+          bedon = 0;
+        }
+        else if(param.equals("desk")){
+          deskon = 0;
+        }
+        else if(param.equals("shelf")){
+          shelfon = 0;
+        }
+        else if(param.equals("power")){
+          power = 0;
+        }
+      }
+    }  
     runCommand();
   }
+  runCommand();
 }
 void runCommand(){
-  if (program == 1) {
+  FastLED.setBrightness(brightness);
+  if(power==0){
+    solid(CRGB::Black);
+  }
+  else{
+    if (program == 1) {
     rainbowSpin();
-  }
-  else if (program == 2) {
-    FastLED.setBrightness(brightness);
-    
-    solid(color);
-  }
-  else if (program == 3) {
-    flash();
-  }
-  else if (program == 4) {
-    rainbowSolid();
-  }
-  else {
-    delay(1000);
+    }
+    else if (program == 2) {    
+      solid(color);
+    }
+    else if (program == 3) {
+      flash();
+    }
+    else if (program == 4) {
+      rainbowSolid();
+    }
+    else {
+      delay(1000);
+    }
   }
 }
 
@@ -111,7 +149,7 @@ void changeColor(String c){
     color = CRGB(0, 255, 128);
   }
   else{
-    color=CRGB::Red;  
+    color=CRGB::White;  
   }
 }
 //Programs
@@ -155,30 +193,38 @@ void flash() {
 
 }
 void solid(CRGB c) {
-  if (roomon) {
     for (int i = 0; i < NUM_ROOM; i++) {
-      room[i] = c;
-      // room[i] = CRGB::Black;
+      if (roomon) {
+        room[i] = c;
+      }
+      else{
+        room[i] = CRGB::Black;
+      }
     }
-  }
-  if (bedon) {
     for (int i = 0; i < NUM_UNDER; i++) {
-      under[i] = c;
-      //under[i] = CRGB::Black;
+      if (bedon) {
+        under[i] = c;
+      }
+      else{
+        under[i] = CRGB::Black;
+      }
     }
-  }
-  if (shelfon) {
     for (int i = 0; i < NUM_SHELF; i++) {
-      shelf[i] = c;
-      //desk[i] = CRGB::Black;
+      if (shelfon) {
+        shelf[i] = c;
+      }
+      else{
+        shelf[i] = CRGB::Black;
+      }
     }
-  }
-  if (deskon) {
     for (int i = 30; i < NUM_DESK; i++) {
-      desk[i] = c;
-      //desk[i] = CRGB::Black;
+      if (deskon) {
+        desk[i] = c;
+      }
+      else{
+        desk[i] = CRGB::Black;
+      }
     }
-  }
   FastLED.show();
 }
 //helper functions
