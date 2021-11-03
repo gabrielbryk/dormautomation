@@ -18,6 +18,8 @@ int deskon = 1;
 int roomon = 1;
 int shelfon = 1;
 int bedon = 1;
+int lampon = 0;
+int count = 0;
 
 CRGB color=CRGB::White;
 CRGB room[NUM_ROOM];
@@ -46,61 +48,103 @@ void setup() {
   }
   runCommand();
 }
+
 void loop() {
-  for(int i=0;i<1000;i++){
-    if (Serial.available() > 0) {
-      String command = Serial.readStringUntil('\n');
-      command.toLowerCase();
-      String param = command.substring(10);
-      Serial.print(command+" "+param);
-      if (command.startsWith("program")) {
-        program = param.toInt();
+    //if(count<1000){
+      if (Serial.available() > 0) {
+        String command = Serial.readStringUntil('\n');
+        command.toLowerCase();
+        parseCommand(command);
+        runCommand();
       }
-      else if (command.startsWith("brightness")) {
-        brightness = param.toInt();
-      }
-      else if (command.startsWith("color")) {
-        changeColor(param);
-      }
-      else if(command.startsWith("on")){
-        if(param.equals("room")){
-          roomon = 1;
-        }
-        else if(param.equals("bed")){
-          bedon = 1;
-        }
-        else if(param.equals("desk")){
-          deskon = 1;
-        }
-        else if(param.equals("shelf")){
-          shelfon = 1;
-        }
-        else if(param.equals("power")){
-          power = 1;
-        }
-      }
-      else if(command.startsWith("off")){
-        if(param.equals("room")){
-          roomon = 0;
-        }
-        else if(param.equals("bed")){
-          bedon = 0;
-        }
-        else if(param.equals("desk")){
-          deskon = 0;
-        }
-        else if(param.equals("shelf")){
-          shelfon = 0;
-        }
-        else if(param.equals("power")){
-          power = 0;
-        }
-      }
-    }  
-    runCommand();
-  }
-  runCommand();
+    //   count = count + 1;
+    // }
+    // else{
+    //   runCommand();
+    //   count = 100;
+    // }
+
+    
 }
+
+void parseCommand(String command){
+  String param = command.substring(10);
+  Serial.print(command+" "+param);
+  if (command.startsWith("program")) {
+    program = param.toInt();
+  }
+  else if (command.startsWith("brightness")) {
+    brightness = param.toInt();
+  }
+  else if (command.startsWith("color")) {
+    changeColor(param);
+  }
+  else if (command.startsWith("routine")){
+    allOn();
+    if(param.equals("bed")){
+      brightness=50;
+      changeColor("chill");
+      roomon=0;
+    }
+    else if(param.equals("default")){
+      brightness=200;
+      changeColor("white"); 
+    }
+    else if(param.equals("movie")){
+      brightness=50;
+      changeColor("chill");
+    }
+    else if(param.equals("chill")){
+      brightness=150;
+      changeColor("chill");
+    }
+    else{
+      brightness=200;
+      changeColor("white"); 
+    }
+  }
+  else if(command.startsWith("on")){
+    if(param.equals("room")){
+      roomon = 1;
+    }
+    else if(param.equals("bed")){
+      bedon = 1;
+    }
+    else if(param.equals("desk")){
+      deskon = 1;
+    }
+    else if(param.equals("shelf")){
+      shelfon = 1;
+    }
+    else if(param.equals("power")){
+      power = 1;
+    }
+    else if(param.equals("lamp")){
+      lampon = 1;
+    }
+  }
+  else if(command.startsWith("off")){
+    if(param.equals("room")){
+      roomon = 0;
+    }
+    else if(param.equals("bed")){
+      bedon = 0;
+    }
+    else if(param.equals("desk")){
+      deskon = 0;
+    }
+    else if(param.equals("shelf")){
+      shelfon = 0;
+    }
+    else if(param.equals("power")){
+      power = 0;
+    }
+    else if(param.equals("lamp")){
+      lampon = 0;
+    }
+  }
+}  
+
 void runCommand(){
   FastLED.setBrightness(brightness);
   if(power==0){
@@ -122,34 +166,9 @@ void runCommand(){
     else {
       delay(1000);
     }
-  }
-}
-
-void changeColor(String c){
-  if(c.equals("piss")){
-    color= CRGB(255, 200, 0);
-  }
-  else if(c.equals("sex")){
-    //sex pink
-    color = CRGB(227, 43, 237);
-  }
-  else if(c.equals("white")){
-    color=CRGB::White;
-  }
-  else if(c.equals("chill")){
-    //purple chill
-    color = CRGB(100, 70, 255);
-  }
-  else if(c.equals("orange")){
-    //orangey red
-    color = CRGB(245, 43, 7);
-  }
-  else if(c.equals("teal")){
-    //orangey red
-    color = CRGB(0, 255, 128);
-  }
-  else{
-    color=CRGB::White;  
+    if(lampon==1){
+      lamp();
+    }
   }
 }
 //Programs
@@ -171,7 +190,6 @@ void rainbowSpin() {
   }
 }
 
-//Programs
 void rainbowSolid() {
   for (int hue = 0; hue < 255; hue += 1) {
 
@@ -182,6 +200,7 @@ void rainbowSolid() {
     showStrip();
   }
 }
+
 void flash() {
   int f = 500;
   solid(CRGB::Red);
@@ -192,6 +211,7 @@ void flash() {
   delay(f);
 
 }
+
 void solid(CRGB c) {
     for (int i = 0; i < NUM_ROOM; i++) {
       if (roomon) {
@@ -227,7 +247,7 @@ void solid(CRGB c) {
     }
   FastLED.show();
 }
-//helper functions
+//Helper Functions
 void shift(CRGB arr[], int num) {
   CRGB last = arr[num];
   for (int i = num - 1; i > 0; i--) {
@@ -245,13 +265,54 @@ void shift(CRGB arr[], int num, int skipstart, int skipend) {
     }
     arr[i] = arr[i - 1];
   }
-
-
 }
+
+void lamp() {
+  for (int i = 30; i < 100; i++) {
+    desk[i] = CHSV(0,0,255);
+  }
+  showStrip();
+}
+
+void allOn() {
+  roomon=1;
+  deskon=1;
+  shelfon=1;
+  bedon=1;
+}
+
 void showStrip() {
   //Turn off part
-  for (int i = 166; i < 174; i++) {
+  //for (int i = 166; i < 174; i++) {
     //under[i] = CHSV(100,100,100);
-  }
+  //}
   FastLED.show();
+}
+
+void changeColor(String c){
+  if(c.equals("piss")){
+    color= CRGB(255, 200, 0);
+  }
+  else if(c.equals("sex")){
+    //sex pink
+    color = CRGB(227, 43, 237);
+  }
+  else if(c.equals("white")){
+    color=CRGB::White;
+  }
+  else if(c.equals("chill")){
+    //purple chill
+    color = CRGB(100, 70, 255);
+  }
+  else if(c.equals("orange")){
+    //orangey red
+    color = CRGB(245, 43, 7);
+  }
+  else if(c.equals("teal")){
+    //orangey red
+    color = CRGB(0, 255, 128);
+  }
+  else{
+    color=CRGB::White;  
+  }
 }
